@@ -1,0 +1,33 @@
+{
+    "name": "szabmik/slim",
+    "version": "1.0.0",
+    "description": "Slim",
+    "keywords": ["slim", "framework", "api"],
+    "type": "library",
+    "require": {
+        "php": ">=8.4",
+        "slim/slim": "4.15",
+        "slim/psr7": "1.7.1",
+        "php-di/php-di": "7.1.1",
+        "opis/json-schema": "2.4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Szabmik\\Slim\\": ["src/"]
+        }
+    },
+    "authors": [
+        {
+            "name": "szabmik",
+            "email": "szabmik92@gmail.com"
+        }
+    ],
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "3.87.2",
+        "phpstan/phpstan": "2.1.25"
+    }
+}
