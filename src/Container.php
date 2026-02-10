@@ -18,7 +18,10 @@ class Container
     /**
      * Creates and configures a PHP-DI Container.
      *
-     * @param array|callable|null $definitionSource Optional definitions or callables to modify the ContainerBuilder.
+     * @param array<string, mixed>|callable|array<callable>|null $definitionSource
+     *        - If array of definitions: added directly to container
+     *        - If callable: invoked with ContainerBuilder as parameter
+     *        - If array of callables: each callable is invoked with ContainerBuilder
      * @param bool $enableCompilation Whether to enable container compilation (for performance).
      *
      * @return \DI\Container The configured dependency injection container.
@@ -33,16 +36,63 @@ class Container
             $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
         }
 
-        if (!is_null($definitionSource)) {
-            $sources = is_array($definitionSource) ? $definitionSource : [$definitionSource];
-
-            foreach ($sources as $source) {
-                if (is_callable($source)) {
-                    call_user_func($source, $containerBuilder);
-                }
-            }
+        if ($definitionSource !== null) {
+            self::addDefinitions($containerBuilder, $definitionSource);
         }
 
         return $containerBuilder->build();
+    }
+
+    /**
+     * Adds definitions to the container builder.
+     *
+     * Supports three formats:
+     * 1. Callable - invoked with builder as parameter for custom configuration
+     * 2. Array of key-value definitions - added as DI definitions
+     * 3. Array of callables - each callable is invoked with builder
+     *
+     * @param ContainerBuilder $builder The container builder to configure.
+     * @param array<string, mixed>|callable|array<callable> $definitionSource The definitions to add.
+     */
+    private static function addDefinitions(ContainerBuilder $builder, array|callable $definitionSource): void
+    {
+        // Single callable: invoke with builder
+        if (is_callable($definitionSource)) {
+            $definitionSource($builder);
+            return;
+        }
+
+        // Array: check if it's array of callables or array of definitions
+        if (self::isArrayOfCallables($definitionSource)) {
+            // Array of callables: invoke each
+            foreach ($definitionSource as $callable) {
+                $callable($builder);
+            }
+        } else {
+            // Array of definitions: add directly
+            $builder->addDefinitions($definitionSource);
+        }
+    }
+
+    /**
+     * Checks if the given array contains only callable values.
+     *
+     * @param array<mixed> $array The array to check.
+     *
+     * @return bool True if all values are callable, false otherwise.
+     */
+    private static function isArrayOfCallables(array $array): bool
+    {
+        if (empty($array)) {
+            return false;
+        }
+
+        foreach ($array as $item) {
+            if (!is_callable($item)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

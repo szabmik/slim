@@ -6,6 +6,7 @@ namespace Szabmik\Slim\Action\ServiceStatus;
 
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Log\LoggerInterface;
 use Szabmik\Slim\Action\Action;
 use Szabmik\Slim\Enum\ServiceStatus;
 
@@ -24,8 +25,9 @@ class Readiness extends Action
     /**
      * @param ReadinessCheckRegistry $registry Registry of readiness checks to evaluate.
      */
-    public function __construct(private ReadinessCheckRegistry $registry)
+    public function __construct(private ReadinessCheckRegistry $registry, protected ?LoggerInterface $logger = null)
     {
+        parent::__construct($logger);
     }
 
     /**
@@ -48,17 +50,22 @@ class Readiness extends Action
             $results[$check->getName()] = [
                 'status' => $ready ? ServiceStatus::Healthy->value : ServiceStatus::Unhealthy->value,
                 'details' => $check->getDetails(),
+                'required' => $check->isRequired()
             ];
-            $allHealthy = $allHealthy && $ready;
+
+            $allHealthy = $allHealthy && (!$check->isRequired() || $ready);
         }
 
         $status = $allHealthy ? ServiceStatus::Healthy->value : ServiceStatus::Unhealthy->value;
 
-        return $this->respondWithData([
-            'status' => $status,
-            'checked_at' => (new DateTimeImmutable())->format('c'),
-            'components' => $results,
-        ])
-            ->withHeader('Cache-Control', 'no-store');
+        return $this->respondWithData(
+            [
+                'status' => $status,
+                'checked_at' => (new DateTimeImmutable())->format('c'),
+                'components' => $results,
+            ],
+            $allHealthy ? 200 : 503
+        )
+        ->withHeader('Cache-Control', 'no-store');
     }
 }

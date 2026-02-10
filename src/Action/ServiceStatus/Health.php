@@ -26,7 +26,7 @@ class Health extends Action
      */
     protected function action(): Response
     {
-        $response =  $this->respondWithData(
+        $response = $this->respondWithData(
             [
                 'status' => ServiceStatus::Healthy->value,
                 'timestamp' => (new DateTimeImmutable())->format('c')

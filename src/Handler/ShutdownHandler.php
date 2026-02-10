@@ -6,7 +6,7 @@ namespace Szabmik\Slim\Handler;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Exception\HttpInternalServerErrorException;
-use Szabmik\Slim\ResponseEmitter\ResponseEmitter;
+use Slim\ResponseEmitter;
 
 /**
  * Handles fatal PHP shutdown errors and converts them into structured HTTP responses.
@@ -31,9 +31,6 @@ class ShutdownHandler
         private HttpErrorHandler $errorHandler,
         private bool $displayErrorDetails
     ) {
-        $this->request = $request;
-        $this->errorHandler = $errorHandler;
-        $this->displayErrorDetails = $displayErrorDetails;
     }
 
     /**
@@ -59,6 +56,7 @@ class ShutdownHandler
             true,
         );
 
+        // Use standard Slim emitter for shutdown errors (CORS not needed in error state)
         $responseEmitter = new ResponseEmitter();
         $responseEmitter->emit($response);
     }

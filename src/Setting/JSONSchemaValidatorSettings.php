@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Szabmik\Slim\Setting;
 
-use Szabmik\Slim\Setting\ArraySettings;
-
 /**
  * Settings class for configuring JSON schema validation behavior.
  *

@@ -35,4 +35,11 @@ interface IReadinessCheck
      * @return array<string, mixed> An associative array of status details.
      */
     public function getDetails(): array;
+
+    /**
+     * Indicates whether the component is required for the service to be considered ready.
+     *
+     * @return bool True if the component is required for the service to be considered ready.
+     */
+    public function isRequired(): bool;
 }

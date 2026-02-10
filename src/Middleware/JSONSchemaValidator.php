@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Szabmik\Slim\Middleware;
 
 use Exception;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -12,7 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionClass;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteContext;
-use StdClass;
+use stdClass;
 use Szabmik\Slim\Action\Error\Error;
 use Szabmik\Slim\Action\Error\FieldError;
 use Szabmik\Slim\Action\Payload;
@@ -57,28 +58,68 @@ class JSONSchemaValidator implements MiddlewareInterface
      * @param string $type Source of data (defined by ValidateSchema constants).
      * @param ServerRequestInterface $request The HTTP request.
      *
-     * @return object JSON-decoded request data.
+     * @throws JsonException If JSON decoding fails.
+     *
+     * @return object JSON-decoded request data as stdClass.
      */
     protected function getData(string $type, ServerRequestInterface $request): object
     {
         if ($type === ValidateSchema::TYPE_REQUEST_BODY) {
-            $bodyContent = $request->getBody()->getContents();
-            if (empty($bodyContent)) {
-                return new stdClass();
-            }
-
-            return json_decode($bodyContent, false);
+            return $this->getRequestBodyData($request);
         }
 
         if ($type === ValidateSchema::TYPE_QUERY_PARAMETERS) {
-            if (empty($request->getQueryParams())) {
-                return new stdClass();
-            }
-
-            return json_decode(json_encode($request->getQueryParams()), false);
+            return $this->getQueryParametersData($request);
         }
 
         return new stdClass();
+    }
+
+    /**
+     * Extracts and decodes request body data.
+     *
+     * @param ServerRequestInterface $request The HTTP request.
+     *
+     * @throws JsonException If JSON decoding fails.
+     *
+     * @return object The decoded request body or empty stdClass.
+     */
+    private function getRequestBodyData(ServerRequestInterface $request): object
+    {
+        $bodyContent = $request->getBody()->getContents();
+
+        if (empty($bodyContent)) {
+            return new stdClass();
+        }
+
+        try {
+            $decoded = json_decode($bodyContent, false, 512, JSON_THROW_ON_ERROR);
+            return is_object($decoded) ? $decoded : new stdClass();
+        } catch (JsonException $e) {
+            // Return error as stdClass to let schema validator handle it
+            throw new JsonException('Invalid JSON in request body: ' . $e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Converts query parameters to object format for validation.
+     *
+     * Note: Uses object conversion instead of json_encode/decode for better performance.
+     *
+     * @param ServerRequestInterface $request The HTTP request.
+     *
+     * @return object The query parameters as object or empty stdClass.
+     */
+    private function getQueryParametersData(ServerRequestInterface $request): object
+    {
+        $queryParams = $request->getQueryParams();
+
+        if (empty($queryParams)) {
+            return new stdClass();
+        }
+
+        // Convert array to object more efficiently than json_encode/decode
+        return (object) $queryParams;
     }
 
     /**
@@ -89,7 +130,6 @@ class JSONSchemaValidator implements MiddlewareInterface
      *
      * @return object JSON schema object.
      */
-
     protected function getSchema(string $type, string $schemaName): object
     {
         $prefix = '';
