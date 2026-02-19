@@ -23,9 +23,10 @@ class FieldError extends Error
         private string $type,
         private string $fieldName,
         private string $code,
-        private ?string $description = null
+        private ?string $description = null,
+        private ?string $uid = null
     ) {
-        parent::__construct($type, $description);
+        parent::__construct($type, $description, $uid);
     }
 
     /**
@@ -86,6 +87,7 @@ class FieldError extends Error
             'code' => $this->code,
             'fieldName' => $this->fieldName,
             'description' => $this->description,
+            'uid' => $this->uid
         ];
     }
 }

@@ -13,7 +13,6 @@ use Slim\Middleware\ContentLengthMiddleware;
 use Szabmik\Slim\Handler\HttpErrorHandler;
 use Szabmik\Slim\Handler\ShutdownHandler;
 use Szabmik\Slim\Middleware\RemoveTrailingSlash;
-use Szabmik\Slim\ResponseEmitter\ResponseEmitter;
 use Szabmik\Slim\Setting\AppSettings;
 
 /**
@@ -40,7 +39,6 @@ class AppBuilder
     private ?Closure $middlewares = null;
     private ?HttpErrorHandler $httpErrorHandler = null;
     private ?ShutdownHandler $shutdownHandler = null;
-    private ?ResponseEmitter $responseEmitter = null;
 
     /**
      * Private constructor to enforce factory method usage.
@@ -77,7 +75,7 @@ class AppBuilder
         return $this;
     }
 
-    /**
+    /** 
      * Sets the route registration callback.
      *
      * @param callable $routes Callback that receives the App instance and registers routes.
@@ -130,21 +128,6 @@ class AppBuilder
     }
 
     /**
-     * Sets a custom response emitter with CORS support.
-     *
-     * If not set, the app will use ResponseEmitter::fromEnvironment() by default.
-     *
-     * @param ResponseEmitter $emitter Custom response emitter.
-     *
-     * @return self Returns self for method chaining.
-     */
-    public function withResponseEmitter(ResponseEmitter $emitter): self
-    {
-        $this->responseEmitter = $emitter;
-        return $this;
-    }
-
-    /**
      * Builds and returns the fully configured Slim App instance.
      *
      * This method performs the following steps:
@@ -165,28 +148,11 @@ class AppBuilder
 
         $this->registerRoutes();
         $this->registerCustomMiddlewares();
+        $this->registerDefaultMiddlewares();
         $this->configureErrorHandling();
         $this->registerShutdownFunction();
-        $this->registerDefaultMiddlewares();
 
         return $this->app;
-    }
-
-    /**
-     * Enables CORS support using environment-based origin whitelist.
-     *
-     * ⚠️ Only needed if your API is called from web browsers (SPA frontends)!
-     * Not needed for: microservices, mobile apps, CLI tools, server-to-server.
-     *
-     * Reads ALLOWED_ORIGINS environment variable for origin whitelist.
-     * Falls back to '*' (all origins) if not set.
-     *
-     * @return self Returns self for method chaining.
-     */
-    public function withCors(): self
-    {
-        $this->responseEmitter = ResponseEmitter::fromEnvironment();
-        return $this;
     }
 
     /**
@@ -201,15 +167,7 @@ class AppBuilder
      */
     public function run(): void
     {
-        $app = $this->build();
-
-        // If custom emitter is set (e.g., via withCors() or withResponseEmitter()), use it
-        // Otherwise, use standard Slim emitter (no CORS)
-        if ($this->responseEmitter !== null) {
-            $app->run($this->responseEmitter);
-        } else {
-            $app->run();  // Standard Slim emitter
-        }
+        $this->build()->run();
     }
 
     /**

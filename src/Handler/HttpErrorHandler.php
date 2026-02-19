@@ -17,6 +17,9 @@ use Slim\Handlers\ErrorHandler as SlimErrorHandler;
 use Szabmik\Slim\Action\Error\Error as ActionError;
 use Szabmik\Slim\Action\Payload as ActionPayload;
 use Szabmik\Slim\Enum\ActionErrorType;
+use Monolog\Logger;
+use Monolog\Processor\UidProcessor;
+use Monolog\Processor\ProcessorInterface;
 
 /**
  * Custom HTTP error handler for Slim applications.
@@ -75,6 +78,11 @@ class HttpErrorHandler extends SlimErrorHandler
             $error->setDescription($exception->getMessage());
         }
 
+        $uidProcessor = $this->getUidProcessor();
+        if ($uidProcessor) {
+            $error->setUid($uidProcessor->getUid());
+        }
+
         $payload = new ActionPayload($statusCode, null, $error);
         $encodedPayload = json_encode($payload, JSON_PRETTY_PRINT);
         if ($encodedPayload === false) {
@@ -84,5 +92,20 @@ class HttpErrorHandler extends SlimErrorHandler
         $response->getBody()->write($encodedPayload);
 
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Returns the UID processor from the logger, if any.
+     *
+     * @return UidProcessor|null The UID processor or null if not found.
+     */
+    private function getUidProcessor(): ?UidProcessor
+    {
+        if (!$this->logger instanceof Logger) {
+            return null;
+        }
+
+        $uidProcessor = array_filter($this->logger->getProcessors(), fn(ProcessorInterface $processor) => $processor instanceof UidProcessor);
+        return $uidProcessor[0] ?? null;
     }
 }

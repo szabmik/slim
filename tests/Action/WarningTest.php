@@ -28,6 +28,37 @@ class WarningTest extends TestCase
         $this->assertSame('This feature is deprecated', $warning->getDescription());
     }
 
+    public function testConstructorWithUid(): void
+    {
+        $warning = new Warning('DEPRECATION', 'Description', 'warn-uuid-123');
+
+        $this->assertSame('warn-uuid-123', $warning->getUid());
+    }
+
+    public function testConstructorUidDefaultsToNull(): void
+    {
+        $warning = new Warning('DEPRECATION');
+
+        $this->assertNull($warning->getUid());
+    }
+
+    public function testSetUid(): void
+    {
+        $warning = new Warning('DEPRECATION');
+        $result = $warning->setUid('custom-uid-456');
+
+        $this->assertSame('custom-uid-456', $warning->getUid());
+        $this->assertSame($warning, $result);
+    }
+
+    public function testSetUidToNull(): void
+    {
+        $warning = new Warning('DEPRECATION', null, 'original-uid');
+        $warning->setUid(null);
+
+        $this->assertNull($warning->getUid());
+    }
+
     public function testSetType(): void
     {
         $warning = new Warning('INITIAL_TYPE');
@@ -74,8 +105,19 @@ class WarningTest extends TestCase
         $this->assertIsArray($json);
         $this->assertArrayHasKey('type', $json);
         $this->assertArrayHasKey('description', $json);
+        $this->assertArrayHasKey('uid', $json);
         $this->assertSame('NOTICE', $json['type']);
         $this->assertNull($json['description']);
+        $this->assertNull($json['uid']);
+    }
+
+    public function testJsonSerializeWithUid(): void
+    {
+        $warning = new Warning('DEPRECATION', 'Use new API', 'warn-abc-789');
+        $json = $warning->jsonSerialize();
+
+        $this->assertArrayHasKey('uid', $json);
+        $this->assertSame('warn-abc-789', $json['uid']);
     }
 
     public function testJsonEncode(): void
@@ -94,10 +136,12 @@ class WarningTest extends TestCase
         $warning = new Warning('INITIAL');
         $result = $warning
             ->setType('UPDATED_TYPE')
-            ->setDescription('Updated description');
+            ->setDescription('Updated description')
+            ->setUid('fluent-uid');
 
         $this->assertSame($warning, $result);
         $this->assertSame('UPDATED_TYPE', $warning->getType());
         $this->assertSame('Updated description', $warning->getDescription());
+        $this->assertSame('fluent-uid', $warning->getUid());
     }
 }

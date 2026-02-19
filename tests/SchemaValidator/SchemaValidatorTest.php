@@ -188,11 +188,11 @@ class SchemaValidatorTest extends TestCase
     public function testValidateWithPrefix(): void
     {
         $validator = new SchemaValidator($this->testSchemaFolder, 'http://example.com/schemas/');
-        
+
         $schema = (object)[
             'type' => 'string',
         ];
-        
+
         $this->validator->validate('test', $schema);
         $this->assertTrue($this->validator->isValid());
     }

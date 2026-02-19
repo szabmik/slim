@@ -39,7 +39,7 @@ abstract class Action
      *
      * @param LoggerInterface|null $logger
      */
-    public function __construct(protected ?LoggerInterface $logger)
+    public function __construct(protected ?LoggerInterface $logger = null)
     {
     }
 

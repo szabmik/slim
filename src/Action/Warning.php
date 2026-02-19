@@ -22,7 +22,8 @@ class Warning implements JsonSerializable
      */
     public function __construct(
         private string $type,
-        private ?string $description = null
+        private ?string $description = null,
+        private ?string $uid = null
     ) {
     }
 
@@ -73,6 +74,29 @@ class Warning implements JsonSerializable
     }
 
     /**
+     * Returns the unique identifier of the error, if any.
+     *
+     * @return string|null The error unique identifier or null if not set.
+     */
+    public function getUid(): ?string
+    {
+        return $this->uid;
+    }
+
+    /**
+     * Sets the unique identifier of the error.
+     *
+     * @param string|null $uid The new error unique identifier.
+     *
+     * @return self Returns the Error instance for method chaining.
+     */
+    public function setUid(?string $uid = null): self
+    {
+        $this->uid = $uid;
+        return $this;
+    }
+
+    /**
      * Converts the Warning instance into a serializable array for JSON output.
      *
      * @return array<string, string|null>
@@ -82,6 +106,7 @@ class Warning implements JsonSerializable
         return [
             'type' => $this->type,
             'description' => $this->description,
+            'uid' => $this->uid
         ];
     }
 }

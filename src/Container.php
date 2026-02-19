@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Szabmik\Slim;
 
 use DI\ContainerBuilder;
+use Szabmik\Slim\Factory\LoggerFactory;
 
 /**
  * A helper class for creating a configured PHP-DI Container instance.
@@ -28,12 +29,18 @@ class Container
      */
     public static function create(
         array|null|callable $definitionSource = null,
-        bool $enableCompilation = false
+        bool $enableCompilation = false,
+        bool $registerDefaultLogger = true
     ): \DI\Container {
         $containerBuilder = new ContainerBuilder();
 
         if ($enableCompilation) {
             $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
+        }
+        
+        // Default logger registration
+        if ($registerDefaultLogger) {
+            LoggerFactory::register($containerBuilder);
         }
 
         if ($definitionSource !== null) {

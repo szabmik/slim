@@ -32,6 +32,29 @@ class FieldErrorTest extends TestCase
         $this->assertNull($error->getDescription());
     }
 
+    public function testConstructorWithUid(): void
+    {
+        $error = new FieldError('VALIDATION_ERROR', 'email', 'INVALID_FORMAT', 'Description', 'field-uid-123');
+
+        $this->assertSame('field-uid-123', $error->getUid());
+    }
+
+    public function testConstructorUidDefaultsToNull(): void
+    {
+        $error = new FieldError('VALIDATION_ERROR', 'email', 'INVALID_FORMAT');
+
+        $this->assertNull($error->getUid());
+    }
+
+    public function testSetUid(): void
+    {
+        $error = new FieldError('VALIDATION_ERROR', 'email', 'INVALID_FORMAT');
+        $result = $error->setUid('custom-field-uid');
+
+        $this->assertSame('custom-field-uid', $error->getUid());
+        $this->assertSame($error, $result);
+    }
+
     public function testSetFieldName(): void
     {
         $error = new FieldError('VALIDATION_ERROR', 'email', 'INVALID_FORMAT');
@@ -94,6 +117,17 @@ class FieldErrorTest extends TestCase
         $this->assertSame('REQUIRED', $json['code']);
         $this->assertSame('email', $json['fieldName']);
         $this->assertNull($json['description']);
+        $this->assertArrayHasKey('uid', $json);
+        $this->assertNull($json['uid']);
+    }
+
+    public function testJsonSerializeWithUid(): void
+    {
+        $error = new FieldError('VALIDATION_ERROR', 'email', 'INVALID_FORMAT', 'Invalid format', 'field-err-abc');
+        $json = $error->jsonSerialize();
+
+        $this->assertArrayHasKey('uid', $json);
+        $this->assertSame('field-err-abc', $json['uid']);
     }
 
     public function testJsonEncode(): void
@@ -116,13 +150,15 @@ class FieldErrorTest extends TestCase
             ->setFieldName('newField')
             ->setCode('NEW_CODE')
             ->setType('NEW_TYPE')
-            ->setDescription('New description');
+            ->setDescription('New description')
+            ->setUid('fluent-field-uid');
 
         $this->assertSame($error, $result);
         $this->assertSame('newField', $error->getFieldName());
         $this->assertSame('NEW_CODE', $error->getCode());
         $this->assertSame('NEW_TYPE', $error->getType());
         $this->assertSame('New description', $error->getDescription());
+        $this->assertSame('fluent-field-uid', $error->getUid());
     }
 
     public function testInheritanceFromError(): void

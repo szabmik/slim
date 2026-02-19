@@ -21,7 +21,8 @@ class Error implements JsonSerializable
      */
     public function __construct(
         private string $type,
-        private ?string $description = null
+        private ?string $description = null,
+        private ?string $uid = null
     ) {
     }
 
@@ -72,6 +73,29 @@ class Error implements JsonSerializable
     }
 
     /**
+     * Returns the unique identifier of the error, if any.
+     *
+     * @return string|null The error unique identifier or null if not set.
+     */
+    public function getUid(): ?string
+    {
+        return $this->uid;
+    }
+
+    /**
+     * Sets the unique identifier of the error.
+     *
+     * @param string|null $uid The new error unique identifier.
+     *
+     * @return self Returns the Error instance for method chaining.
+     */
+    public function setUid(?string $uid = null): self
+    {
+        $this->uid = $uid;
+        return $this;
+    }
+
+    /**
      * Specifies the data that should be serialized to JSON.
      *
      * @return array<string, string|null> An associative array containing 'type' and 'description'.
@@ -81,6 +105,7 @@ class Error implements JsonSerializable
         return [
             'type' => $this->type,
             'description' => $this->description,
+            'uid' => $this->uid
         ];
     }
 }

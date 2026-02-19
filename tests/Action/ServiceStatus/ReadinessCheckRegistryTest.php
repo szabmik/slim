@@ -116,7 +116,7 @@ class ReadinessCheckRegistryTest extends TestCase
 
     public function testRegistryWithConcreteImplementation(): void
     {
-        $check = new class implements IReadinessCheck {
+        $check = new class () implements IReadinessCheck {
             public function isReady(): bool
             {
                 return true;

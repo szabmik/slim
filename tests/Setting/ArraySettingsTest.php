@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Szabmik\Slim\Tests\Setting;
 
 use PHPUnit\Framework\TestCase;
-use Szabmik\Slim\Setting\ArraySettings;
-use Szabmik\Slim\Setting\SettingsInterface;
+use Szabmik\Slim\Settings\ArraySettings;
+use Szabmik\Slim\Settings\SettingsInterface;
 
 /**
  * Unit tests for ArraySettings abstract class.

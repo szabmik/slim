@@ -42,27 +42,67 @@ class RequestResponseLogger implements MiddlewareInterface
 
         $requestHeaders = $this->getHeadersAsString($request->getHeaders());
 
-        $this->logger->debug(
-            'Request has been received',
+        $this->logger->info(
+            sprintf(
+                'Incoming %s request to %s',
+                $request->getMethod(),
+                $request->getUri()->getPath()
+            ),
             [
-                'uri' => $request->getUri()->__toString(),
+                'uri' => (string)$request->getUri(),
+                'route' => $pattern ?? '',
                 'method' => $request->getMethod(),
-                'headers' => $requestHeaders,
-                'body' => $request->getParsedBody()
             ]
         );
+
+        $this->logger->debug(
+            sprintf(
+                'Incoming %s request to %s details',
+                $request->getMethod(),
+                $request->getUri()->getPath()
+            ),
+            [
+                'uri' => (string)$request->getUri(),
+                'route' => $pattern ?? '',
+                'method' => $request->getMethod(),
+                'header' => $requestHeaders,
+                'body' => json_encode($request->getParsedBody(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            ]
+        );
+        
         $response = $handler->handle($request);
 
         $responseHeaders = $this->getHeadersAsString($response->getHeaders());
 
-        $this->logger->debug(
-            'Response has been sent',
+        $this->logger->info(
+            sprintf(
+                'Responded with %d to %s %s',
+                $response->getStatusCode(),
+                $request->getMethod(),
+                $request->getUri()->getPath(),
+            ),
             [
                 'responseTimeMs' => round((microtime(true) - $start) * 1000, 2),
                 'uri' => $request->getUri()->__toString(),
+                'route' => $pattern ?? '',
+                'statusCode' => $response->getStatusCode()
+            ]
+        );
+
+        $this->logger->debug(
+            sprintf(
+                'Responded with %d to %s %s details',
+                $response->getStatusCode(),
+                $request->getMethod(),
+                $request->getUri()->getPath(),
+            ),
+            [
+                'responseTimeMs' => round((microtime(true) - $start) * 1000, 2),
+                'uri' => $request->getUri()->__toString(),
+                'route' => $pattern ?? '',
                 'statusCode' => $response->getStatusCode(),
-                'headers' => $responseHeaders,
-                'body' => json_decode((string)$response->getBody(), true)
+                'header' => $responseHeaders,
+                'body' => json_encode(json_decode((string)$response->getBody(), true), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             ]
         );
 
