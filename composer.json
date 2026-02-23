@@ -1,6 +1,6 @@
 {
     "name": "szabmik/slim",
-    "version": "1.0.2",
+    "version": "1.0.0",
     "description": "Slim",
     "keywords": ["slim", "framework", "api"],
     "type": "library",
@@ -38,7 +38,7 @@
         "phpunit/phpunit": "^10.0"
     },
     "scripts": {
-        "test": "phpunit",
+        "test": "phpunit --no-coverage",
         "test-coverage": "phpunit --coverage-html coverage"
     }
 }
